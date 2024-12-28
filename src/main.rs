@@ -28,6 +28,17 @@ fn main() {
                 println!("{}", args.join(" "))
             }
             "exit" => std::process::exit(0),
+            "type" => {
+                let command_to_check = parts.next().unwrap_or("");
+                match command_to_check {
+                    "exit" | "echo" => {
+                        println!("{} is a shell builtin", command_to_check)
+                    }
+                    _ => {
+                        println!("{}: not found", command_to_check)
+                    }
+                }
+            }
             _ => {
                 println!("{}: command not found", command)
             }
