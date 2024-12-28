@@ -50,7 +50,7 @@ fn handle_type(mut parts: std::str::SplitWhitespace) {
         }
         _ => {
             if let Some(path) = find_command_in_path(command_to_check) {
-                println!("{} is located at: {}", command_to_check, path.display());
+                println!("{} is  {}", command_to_check, path.display());
             } else {
                 println!("{}: not found", command_to_check);
             }
