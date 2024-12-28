@@ -1,6 +1,12 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
-use std::{env::args, os::unix::process, process::ExitCode};
+use std::{
+    env::{self, args},
+    fs,
+    os::unix::process,
+    path::Path,
+    process::ExitCode,
+};
 
 fn main() {
     loop {
@@ -31,11 +37,29 @@ fn main() {
             "type" => {
                 let command_to_check = parts.next().unwrap_or("");
                 match command_to_check {
-                    "exit" | "echo" | "type"  => {
+                    "exit" | "echo" | "type" => {
                         println!("{} is a shell builtin", command_to_check)
                     }
                     _ => {
-                        println!("{}: not found", command_to_check)
+                        let path = env::var("PATH").unwrap_or_default();
+                        let dirs = path.split(':');
+                        let mut found = false;
+
+                        for dir in dirs {
+                            let full_path = Path::new(dir).join(command_to_check);
+                            if full_path.exists() && fs::metadata(&full_path).unwrap().is_file() {
+                                println!(
+                                    "{} is {}",
+                                    command_to_check,
+                                    full_path.display()
+                                );
+                                found = true;
+                                break;
+                            }
+                        }
+                        if !found {
+                            println!("{}: not found", command_to_check)
+                        }
                     }
                 }
             }
