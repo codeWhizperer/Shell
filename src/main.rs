@@ -1,5 +1,6 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
+use std::{os::unix::process, process::ExitCode};
 
 fn main() {
     loop {
@@ -17,6 +18,7 @@ fn main() {
 
         // To properly implement REPL: I have to implement a loop.
         match command {
+            "exit 0" => std::process::exit(0),
             _ => println!("{}: command not found", command),
         }
     }
