@@ -23,11 +23,11 @@ fn main() {
         let command = parts.next().unwrap_or("");
 
         match command {
-            "exit 0" => std::process::exit(0),
             "echo" => {
                 let args: Vec<&str> = parts.collect();
                 println!("{}", args.join(" "))
             }
+            "exit" => std::process::exit(0),
             _ => {
                 println!("{}: command not found", command)
             }
