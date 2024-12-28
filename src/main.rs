@@ -31,7 +31,7 @@ fn main() {
             "type" => {
                 let command_to_check = parts.next().unwrap_or("");
                 match command_to_check {
-                    "exit" | "echo" => {
+                    "exit" | "echo" | "type"  => {
                         println!("{} is a shell builtin", command_to_check)
                     }
                     _ => {
