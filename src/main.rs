@@ -28,6 +28,20 @@ fn main() {
                 Ok(path) => println!("{}", path.display()),
                 Err(e) => eprintln!("Error getting current directory: {}", e),
             },
+            "cd" => {
+                let path = parts.next();
+                match path {
+                    Some(directory) => {
+                        if directory.starts_with("/") {
+                            let new_directory = Path::new(directory);
+                            if let Err(e) = env::set_current_dir(new_directory) {
+                                eprintln!("cd: {}: No such file or directory", directory)
+                            };
+                        }
+                    }
+                    None => eprintln!("cd: No such file or directory",),
+                }
+            }
             _ => {
                 if let Some(_path) = find_command_in_path(command) {
                     // Execute the external program with arguments
@@ -49,7 +63,7 @@ fn handle_type(mut parts: std::str::SplitWhitespace) {
     let command_to_check = parts.next().unwrap_or("");
 
     match command_to_check {
-        "exit" | "echo" | "type" | "pwd" => {
+        "exit" | "echo" | "type" | "pwd" | "cd" => {
             println!("{} is a shell builtin", command_to_check);
         }
         _ => {
