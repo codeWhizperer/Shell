@@ -1,3 +1,5 @@
+use dirs;
+use std::fs;
 use std::io::{self, Write};
 use std::{
     env::{self},
@@ -29,7 +31,13 @@ fn main() {
             },
             "cd" => {
                 if let Some(directory) = parts.next() {
-                    let new_path = if directory.starts_with("/") {
+                    // home directory
+                    let new_path = if directory.starts_with("~") {
+                        dirs::home_dir().unwrap_or_else(|| {
+                            eprintln!("cd: Unable to find the home directory");
+                            std::process::exit(1);
+                        })
+                    } else if directory.starts_with("/") {
                         // Absolute path: Start directly from the provided directory
                         Path::new(directory).to_path_buf()
                     } else {
@@ -37,14 +45,16 @@ fn main() {
                         let mut current_path = env::current_dir().unwrap();
                         for segment in directory.split('/') {
                             match segment {
-                                "" | "." => continue,    // Skip empty and current directory components
-                                ".." => { current_path.pop(); } // Move up one directory
+                                "" | "." => continue, // Skip empty and current directory components
+                                ".." => {
+                                    current_path.pop();
+                                } // Move up one directory
                                 _ => current_path.push(segment), // Add new directory segment
                             }
                         }
                         current_path
                     };
-            
+
                     // Attempt to change the directory
                     if env::set_current_dir(&new_path).is_err() {
                         eprintln!("cd: {}: No such file or directory", directory);
