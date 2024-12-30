@@ -24,10 +24,10 @@ fn main() {
             "echo" => handle_echo(parts),
             "exit" => std::process::exit(0),
             "type" => handle_type(parts),
-            "pwd" => match env::current_dir(){
+            "pwd" => match env::current_dir() {
                 Ok(path) => println!("{}", path.display()),
-                Err(e)=> eprintln!("Error getting current directory: {}", e)
-            }
+                Err(e) => eprintln!("Error getting current directory: {}", e),
+            },
             _ => {
                 if let Some(_path) = find_command_in_path(command) {
                     // Execute the external program with arguments
@@ -36,7 +36,6 @@ fn main() {
                     println!("{}: command not found", command);
                 }
             }
-            
         }
     }
 }
@@ -55,7 +54,7 @@ fn handle_type(mut parts: std::str::SplitWhitespace) {
         }
         _ => {
             if let Some(path) = find_command_in_path(command_to_check) {
-                println!("{} is  {}", command_to_check, path.display());
+                println!("{} is {}", command_to_check, path.display());
             } else {
                 println!("{}: not found", command_to_check);
             }
