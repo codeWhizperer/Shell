@@ -1,9 +1,8 @@
 use std::io::{self, Write};
 use std::{
     env::{self},
-    fs,
     path::Path,
-    process::{Command, ExitCode},
+    process::Command,
 };
 
 fn main() {
@@ -29,17 +28,30 @@ fn main() {
                 Err(e) => eprintln!("Error getting current directory: {}", e),
             },
             "cd" => {
-                let path = parts.next();
-                match path {
-                    Some(directory) => {
-                        if directory.starts_with("/") {
-                            let new_directory = Path::new(directory);
-                            if let Err(e) = env::set_current_dir(new_directory) {
-                                eprintln!("cd: {}: No such file or directory", directory)
-                            };
+                if let Some(directory) = parts.next() {
+                    let new_path = if directory.starts_with("/") {
+                        // Absolute path: Start directly from the provided directory
+                        Path::new(directory).to_path_buf()
+                    } else {
+                        // Relative path: Start from the current directory
+                        let mut current_path = env::current_dir().unwrap();
+                        for segment in directory.split('/') {
+                            match segment {
+                                "" | "." => continue,    // Skip empty and current directory components
+                                ".." => { current_path.pop(); } // Move up one directory
+                                _ => current_path.push(segment), // Add new directory segment
+                            }
                         }
+                        current_path
+                    };
+            
+                    // Attempt to change the directory
+                    if env::set_current_dir(&new_path).is_err() {
+                        eprintln!("cd: {}: No such file or directory", directory);
                     }
-                    None => eprintln!("cd: No such file or directory",),
+                } else {
+                    // No directory argument provided
+                    eprintln!("cd: No such file or directory");
                 }
             }
             _ => {
