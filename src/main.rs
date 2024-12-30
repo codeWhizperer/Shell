@@ -50,10 +50,14 @@ fn handle_type(mut parts: std::str::SplitWhitespace) {
         }
         _ => {
             if let Some(path) = find_command_in_path(command_to_check) {
-                println!("{} is {}", command_to_check, path.display());
+                println!("{} is  {}", command_to_check, path.display());
             } else {
                 println!("{}: not found", command_to_check);
             }
+        }
+        "pwd" => {
+            let path = env::current_dir().unwrap();
+            println!("{}", path.display());
         }
     }
 }
@@ -62,7 +66,6 @@ fn handle_type(mut parts: std::str::SplitWhitespace) {
 fn find_command_in_path(command: &str) -> Option<std::path::PathBuf> {
     let path = env::var("PATH").unwrap_or_else(|_| String::new());
     let dirs = path.split(':');
-
     for dir in dirs {
         let full_path = Path::new(dir).join(command);
         if full_path.is_file() {
