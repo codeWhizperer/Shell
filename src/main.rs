@@ -2,7 +2,7 @@ use std::io::{self, Write};
 use std::{
     env::{self},
     fs,
-    path::{Path},
+    path::Path,
     process::{Command, ExitCode},
 };
 
@@ -45,7 +45,7 @@ fn handle_type(mut parts: std::str::SplitWhitespace) {
     let command_to_check = parts.next().unwrap_or("");
 
     match command_to_check {
-        "exit" | "echo" | "type" => {
+        "exit" | "echo" | "type" | "pwd" => {
             println!("{} is a shell builtin", command_to_check);
         }
         _ => {
