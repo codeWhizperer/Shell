@@ -1,5 +1,6 @@
 use dirs;
 use std::io::{self, Write};
+use std::os::unix::fs::PermissionsExt;
 use std::{
     env::{self},
     path::Path,
@@ -111,7 +112,11 @@ fn find_command_in_path(command: &str) -> Option<std::path::PathBuf> {
     let dirs = path.split(':');
     for dir in dirs {
         let full_path = Path::new(dir).join(command);
-        if full_path.is_file() {
+        if full_path.is_file()
+            && full_path
+                .metadata()
+                .map_or(false, |m| m.permissions().mode() & 0o111 != 0)
+        {
             return Some(full_path);
         }
     }
@@ -123,7 +128,7 @@ fn execute_external_command(command: &str, args: Vec<String>) {
     let command_path = find_command_in_path(command).expect("Command not found");
 
     let output = Command::new(command_path)
-        .args(&args) // Pass the arguments vector directly
+        .args(&args[1..]) // Pass the arguments vector directly
         .output()
         .expect("Failed to execute command");
 
