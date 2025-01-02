@@ -16,12 +16,15 @@ fn main() {
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         let trimmed = input.trim();
+        // parts ["echo", "Hello", "world!!"]
         let parts = parse_command(trimmed);
         if parts.is_empty() {
             continue;
         }
+        // e.g echo Hello World !!! ==> echo is the command
         let command = &parts[0];
-        let args = parts[1..].to_vec();
+        // e.g args ==> ["Hello", "World", "!!!"]
+        let args = parts[0..].to_vec();
 
         // Handle the command
         match command.as_str() {
@@ -67,42 +70,6 @@ fn main() {
                     eprintln!("cd: No such file or directory");
                 }
             }
-
-            // "cd" => {
-            //     if let Some(directory) = parts.next() {
-            //         // home directory
-            //         let new_path = if directory.starts_with("~") {
-            //             dirs::home_dir().unwrap_or_else(|| {
-            //                 eprintln!("cd: Unable to find the home directory");
-            //                 std::process::exit(1);
-            //             })
-            //         } else if directory.starts_with("/") {
-            //             // Absolute path: Start directly from the provided directory
-            //             Path::new(directory).to_path_buf()
-            //         } else {
-            //             // Relative path: Start from the current directory
-            //             let mut current_path = env::current_dir().unwrap();
-            //             for segment in directory.split('/') {
-            //                 match segment {
-            //                     "" | "." => continue, // Skip empty and current directory components
-            //                     ".." => {
-            //                         current_path.pop();
-            //                     } // Move up one directory
-            //                     _ => current_path.push(segment), // Add new directory segment
-            //                 }
-            //             }
-            //             current_path
-            //         };
-
-            //         // Attempt to change the directory
-            //         if env::set_current_dir(&new_path).is_err() {
-            //             eprintln!("cd: {}: No such file or directory", directory);
-            //         }
-            //     } else {
-            //         // No directory argument provided
-            //         eprintln!("cd: No such file or directory");
-            //     }
-            // }
             _ => {
                 if let Some(_path) = find_command_in_path(command) {
                     // Execute the external program with arguments
@@ -116,7 +83,8 @@ fn main() {
 }
 
 fn handle_echo(args: Vec<String>) {
-    println!("{}", args.join(" "));
+    println!("{:?}", args);
+    println!("{}", args[1..].join(" "));
 }
 
 fn handle_type(args: Vec<String>) {
@@ -176,16 +144,24 @@ fn parse_command(input: &str) -> Vec<String> {
     let mut args = Vec::new();
     let mut current_arg = String::new();
     let mut in_single_quote = false;
+    let mut in_double_quote = false;
 
     for c in input.chars() {
         match c {
             '\'' => in_single_quote = !in_single_quote,
-            ' ' if !in_single_quote => {
+            ' ' | '\t' if !in_single_quote && !in_double_quote => {
                 if !current_arg.is_empty() {
                     args.push(current_arg.clone());
                     current_arg.clear();
                 }
             }
+            '\"' => in_double_quote = !in_double_quote,
+            // ' ' if !in_double_quote => {
+            //     if !current_arg.is_empty() {
+            //         args.push(current_arg.clone());
+            //         current_arg.clear();
+            //     }
+            // }
             _ => {
                 current_arg.push(c);
             }
@@ -198,6 +174,10 @@ fn parse_command(input: &str) -> Vec<String> {
 
     if in_single_quote {
         eprintln!("Error: Unmatched single quote");
+    }
+    if in_double_quote{
+        eprintln!("Error: Unmatched double quote");
+
     }
 
     args
