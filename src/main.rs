@@ -195,55 +195,49 @@ fn parse_command(input: &str) -> Vec<String> {
     let mut current_arg = String::new();
     let mut in_single_quote = false;
     let mut in_double_quote = false;
-    let mut in_escape = false; // Flag for handling escape sequences
+    let in_escape = false; // Flag for handling escape sequences
     let mut chars = input.chars().peekable();
 
     while let Some(c) = chars.next() {
         match c {
-            '\'' if !in_double_quote => {
-                // Handle single quotes
-                if in_single_quote {
-                    // Closing single quote
-                    current_arg.push('\'');
+            '\\' if !in_single_quote && !in_double_quote => {
+                // Escape character found, handle accordingly
+                if let Some(&next_char) = chars.peek() {
+                    // Handle escape sequences for special characters like spaces or quotes
+                    if next_char == ' ' || next_char == '"' || next_char == '\'' {
+                        current_arg.push(next_char); // Preserve the escaped character
+                        chars.next(); // Consume the next character
+                    } else {
+                        current_arg.push(c); // Add the backslash as a literal
+                    }
                 }
-                in_single_quote = !in_single_quote;
             }
             '"' if !in_single_quote => {
-                // Handle double quotes
+                // Toggle state for double quotes
                 if in_double_quote {
                     // Closing double quote
                     current_arg.push('\"');
                 }
                 in_double_quote = !in_double_quote;
             }
-            '\\' if !in_single_quote && !in_double_quote => {
-                // Handle backslashes escaping characters
-                if let Some(&next_char) = chars.peek() {
-                    if next_char == ' ' {
-                        // If followed by space, treat it as space instead of backslash
-                        current_arg.push(' ');
-                        chars.next(); // Consume space
-                        continue;
-                    }
+            '\'' if !in_double_quote => {
+                // Toggle state for single quotes
+                if in_single_quote {
+                    // Closing single quote
+                    current_arg.push('\'');
                 }
-                // Treat backslash as escape character for other cases
-                in_escape = true;
+                in_single_quote = !in_single_quote;
             }
             ' ' if !in_single_quote && !in_double_quote && !in_escape => {
-                // Split on space if not inside quotes
+                // Space outside quotes marks argument boundary
                 if !current_arg.is_empty() {
                     args.push(current_arg.clone());
                     current_arg.clear();
                 }
             }
             _ => {
-                // Add other characters to current argument
-                if in_escape {
-                    current_arg.push(c); // Literal addition of escaped character
-                    in_escape = false; // Reset escape
-                } else {
-                    current_arg.push(c);
-                }
+                // Add any other characters to the current argument
+                current_arg.push(c);
             }
         }
     }
