@@ -84,7 +84,7 @@ fn main() {
 }
 
 fn handle_echo(args: Vec<String>) {
-    println!("{}", args[1..].join(" "));
+    println!("{}", args.join(" "));
 }
 
 fn handle_type(args: Vec<String>) {
