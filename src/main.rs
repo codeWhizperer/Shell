@@ -119,10 +119,11 @@ fn find_command_in_path(command: &str) -> Option<std::path::PathBuf> {
 }
 
 /// Execute an external program with arguments.
-fn execute_external_command(command: &str, args: &[String]) {
-    let command_path = find_command_in_path(command).unwrap();
+fn execute_external_command(command: &str, args: Vec<String>) {
+    let command_path = find_command_in_path(command).expect("Command not found");
+
     let output = Command::new(command_path)
-        .args(args)
+        .args(&args)  // Pass the arguments vector directly
         .output()
         .expect("Failed to execute command");
 
@@ -139,15 +140,30 @@ fn execute_external_command(command: &str, args: &[String]) {
     }
 }
 
-// fn parse_command(input: &str) -> Vec<String> {
+
+
+
+// fn parse_command(input: &str) -> Vec<String>{
 //     let mut args = Vec::new();
 //     let mut current_arg = String::new();
 //     let mut in_single_quote = false;
 //     let mut in_double_quote = false;
 
-//     for c in input.chars() {
+//     let mut chars = input.chars().peekable();
+
+//     while let Some(c) = chars.next() {
 //         match c {
-//             '\'' => in_single_quote = !in_single_quote,
+//             // Handle single quote
+//             '\'' if !in_double_quote => {
+//                 in_single_quote = !in_single_quote;
+//             }
+
+//             // Handle double quote
+//             '"' if !in_single_quote => {
+//                 in_double_quote = !in_double_quote;
+//             }
+
+//             // Handle whitespace outside quotes
 //             ' ' | '\t' if !in_single_quote && !in_double_quote => {
 //                 if !current_arg.is_empty() {
 //                     args.push(current_arg.clone());
@@ -155,73 +171,44 @@ fn execute_external_command(command: &str, args: &[String]) {
 //                 }
 //             }
 
-//             '\"' => in_double_quote = !in_double_quote,
-//             // ' ' if !in_double_quote => {
-//             //     if !current_arg.is_empty() {
-//             //         args.push(current_arg.clone());
-//             //         current_arg.clear();
-//             //     }
-//             // }
+//             // Handle characters inside quotes or regular text
 //             _ => {
 //                 current_arg.push(c);
 //             }
 //         }
 //     }
 
+//     // Add the last argument if it exists
 //     if !current_arg.is_empty() {
 //         args.push(current_arg);
 //     }
 
-//     if in_single_quote {
-//         eprintln!("Error: Unmatched single quote");
-//     }
-//     if in_double_quote{
-//         eprintln!("Error: Unmatched double quote");
-
-//     }
-
-//     args
+//     args 
 // }
 
-fn parse_command(input: &str) -> Vec<String>{
+fn parse_command(input: &str) -> Vec<String> {
     let mut args = Vec::new();
     let mut current_arg = String::new();
     let mut in_single_quote = false;
     let mut in_double_quote = false;
 
-    let mut chars = input.chars().peekable();
-
-    while let Some(c) = chars.next() {
+    for c in input.chars() {
         match c {
-            // Handle single quote
-            '\'' if !in_double_quote => {
-                in_single_quote = !in_single_quote;
-            }
-
-            // Handle double quote
-            '"' if !in_single_quote => {
-                in_double_quote = !in_double_quote;
-            }
-
-            // Handle whitespace outside quotes
-            ' ' | '\t' if !in_single_quote && !in_double_quote => {
+            '\'' if !in_double_quote => in_single_quote = !in_single_quote,
+            '"' if !in_single_quote => in_double_quote = !in_double_quote,
+            ' ' if !in_single_quote && !in_double_quote => {
                 if !current_arg.is_empty() {
                     args.push(current_arg.clone());
                     current_arg.clear();
                 }
             }
-
-            // Handle characters inside quotes or regular text
-            _ => {
-                current_arg.push(c);
-            }
+            _ => current_arg.push(c),
         }
     }
 
-    // Add the last argument if it exists
     if !current_arg.is_empty() {
         args.push(current_arg);
     }
 
-    args 
+    args
 }
