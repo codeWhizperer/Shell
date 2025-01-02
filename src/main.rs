@@ -158,7 +158,9 @@ fn parse_command(input: &str) -> Vec<String> {
     let mut in_single_quote = false;
     let mut in_double_quote = false;
 
-    for c in input.chars() {
+    let mut chars = input.chars().peekable();
+
+    while let Some(c) = chars.next() {
         match c {
             '\'' if !in_double_quote => in_single_quote = !in_single_quote,
             '"' if !in_single_quote => in_double_quote = !in_double_quote,
