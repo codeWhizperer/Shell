@@ -135,7 +135,7 @@ fn execute_external_command(command: &str, args: Vec<String>) {
     let command_path = find_command_in_path(command).expect("Command not found");
 
     let output = Command::new(command_path)
-        .args(&args[1..]) // Pass the arguments vector directly
+        .args(&args) // Pass the arguments vector directly
         .output()
         .expect("Failed to execute command");
 
