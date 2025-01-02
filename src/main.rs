@@ -200,8 +200,20 @@ fn parse_command(input: &str) -> Vec<String> {
 
     while let Some(c) = chars.next() {
         match c {
-            '\'' if !in_double_quote => in_single_quote = !in_single_quote, // Toggle single quote
-            '"' if !in_single_quote => in_double_quote = !in_double_quote, // Toggle double quote
+            '\'' if !in_double_quote => {
+                // Toggle single quote if we're not in double quotes
+                if in_single_quote {
+                    current_arg.push('\''); // Add the single quote as part of the argument
+                }
+                in_single_quote = !in_single_quote;
+            }
+            '"' if !in_single_quote => {
+                // Toggle double quote if we're not in single quotes
+                if in_double_quote {
+                    current_arg.push('\"'); // Add the double quote as part of the argument
+                }
+                in_double_quote = !in_double_quote;
+            }
             '\\' if in_escape => {
                 // Handle an escape sequence inside quotes
                 current_arg.push(c); // Add the backslash
