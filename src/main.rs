@@ -84,6 +84,7 @@ fn main() {
 }
 
 fn handle_echo(args: Vec<String>) {
+    // Join all arguments into a single string separated by space and print
     println!("{}", args.join(" "));
 }
 
