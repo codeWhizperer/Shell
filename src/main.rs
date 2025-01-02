@@ -73,7 +73,7 @@ fn main() {
             _ => {
                 if let Some(_path) = find_command_in_path(command) {
                     // Execute the external program with arguments
-                    execute_external_command(command, &args);
+                    execute_external_command(command, args);
                 } else {
                     println!("{}: command not found", command);
                 }
@@ -123,7 +123,7 @@ fn execute_external_command(command: &str, args: Vec<String>) {
     let command_path = find_command_in_path(command).expect("Command not found");
 
     let output = Command::new(command_path)
-        .args(&args)  // Pass the arguments vector directly
+        .args(&args) // Pass the arguments vector directly
         .output()
         .expect("Failed to execute command");
 
@@ -139,52 +139,6 @@ fn execute_external_command(command: &str, args: Vec<String>) {
         std::process::exit(output.status.code().unwrap_or(1));
     }
 }
-
-
-
-
-// fn parse_command(input: &str) -> Vec<String>{
-//     let mut args = Vec::new();
-//     let mut current_arg = String::new();
-//     let mut in_single_quote = false;
-//     let mut in_double_quote = false;
-
-//     let mut chars = input.chars().peekable();
-
-//     while let Some(c) = chars.next() {
-//         match c {
-//             // Handle single quote
-//             '\'' if !in_double_quote => {
-//                 in_single_quote = !in_single_quote;
-//             }
-
-//             // Handle double quote
-//             '"' if !in_single_quote => {
-//                 in_double_quote = !in_double_quote;
-//             }
-
-//             // Handle whitespace outside quotes
-//             ' ' | '\t' if !in_single_quote && !in_double_quote => {
-//                 if !current_arg.is_empty() {
-//                     args.push(current_arg.clone());
-//                     current_arg.clear();
-//                 }
-//             }
-
-//             // Handle characters inside quotes or regular text
-//             _ => {
-//                 current_arg.push(c);
-//             }
-//         }
-//     }
-
-//     // Add the last argument if it exists
-//     if !current_arg.is_empty() {
-//         args.push(current_arg);
-//     }
-
-//     args 
-// }
 
 fn parse_command(input: &str) -> Vec<String> {
     let mut args = Vec::new();
