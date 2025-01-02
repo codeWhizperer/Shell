@@ -220,9 +220,8 @@ fn parse_command(input: &str) -> Vec<String> {
                 // Handle the backslash escaping logic
                 if let Some(&next_char) = chars.peek() {
                     if next_char == ' ' {
-                        // If the next character is a space, we keep the backslash and space
-                        current_arg.push(c);
-                        current_arg.push(next_char);
+                        // If the next character is a space, replace the backslash with a space
+                        current_arg.push(' '); // Use space instead of the backslash
                         chars.next(); // Consume the space after backslash
                         continue;
                     }
