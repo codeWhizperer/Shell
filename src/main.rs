@@ -232,8 +232,8 @@ fn parse_command(input: &str) -> Vec<String> {
     while let Some(c) = chars.next() {
         match c {
             '\\' => handle_backslash(&mut chars, &mut current_arg), // Handle backslashes
-            '"' => handle_double_quote(c, &mut in_double_quote, &mut current_arg, &mut chars), // Handle double quotes
-            '\'' => handle_single_quote(c, &mut in_single_quote, &mut current_arg, &mut chars), // Handle single quotes
+            '"' => handle_double_quote(c, &mut in_double_quote, &mut current_arg), // Handle double quotes
+            '\'' => handle_single_quote(c, &mut in_single_quote, &mut current_arg), // Handle single quotes
             ' ' => handle_space(&mut in_single_quote, &mut in_double_quote, &mut current_arg, &mut args), // Handle spaces between arguments
             _ => current_arg.push(c), // Add regular characters to current argument
         }
@@ -267,8 +267,12 @@ fn handle_backslash(chars: &mut std::iter::Peekable<std::str::Chars>, current_ar
                 chars.next(); // Consume the backslash
             }
             'n' => {
-                current_arg.push('n'); // Replace '\n' with literal 'n'
+                current_arg.push('\n'); // Replace '\n' with a newline character
                 chars.next(); // Consume the 'n'
+            }
+            't' => {
+                current_arg.push('\t'); // Replace '\t' with a tab character
+                chars.next(); // Consume the 't'
             }
             _ => {
                 current_arg.push('\\'); // Default behavior: keep the backslash
@@ -277,16 +281,18 @@ fn handle_backslash(chars: &mut std::iter::Peekable<std::str::Chars>, current_ar
     }
 }
 
-fn handle_double_quote(c: char, in_double_quote: &mut bool, current_arg: &mut String, chars: &mut std::iter::Peekable<std::str::Chars>) {
+fn handle_double_quote(c: char, in_double_quote: &mut bool, current_arg: &mut String) {
     if *in_double_quote {
-        current_arg.push(c); // Add double quote character
+        // If already inside double quotes, ignore the closing quote
+        return;
     }
     *in_double_quote = !*in_double_quote; // Toggle the state for double quotes
 }
 
-fn handle_single_quote(c: char, in_single_quote: &mut bool, current_arg: &mut String, chars: &mut std::iter::Peekable<std::str::Chars>) {
+fn handle_single_quote(c: char, in_single_quote: &mut bool, current_arg: &mut String) {
     if *in_single_quote {
-        current_arg.push(c); // Add single quote character
+        // If already inside single quotes, ignore the closing quote
+        return;
     }
     *in_single_quote = !*in_single_quote; // Toggle the state for single quotes
 }
@@ -295,5 +301,8 @@ fn handle_space(in_single_quote: &mut bool, in_double_quote: &mut bool, current_
     if !*in_single_quote && !*in_double_quote && !current_arg.is_empty() {
         args.push(current_arg.clone()); // Push the current argument if no quotes are active
         current_arg.clear(); // Clear the current argument for the next one
+    } else if *in_single_quote || *in_double_quote {
+        // Don't split on space if inside quotes
+        current_arg.push(' '); // Add space inside quotes to the argument
     }
 }
