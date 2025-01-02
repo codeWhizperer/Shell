@@ -230,7 +230,6 @@ fn parse_command(input: &str) -> Vec<String> {
     let mut chars = input.chars().peekable();
 
     while let Some(c) = chars.next() {
-        // Handle different characters with respective functions
         match c {
             '\\' => handle_backslash(&mut chars, &mut current_arg),
             '"' => handle_double_quote(c, &mut in_double_quote, &mut current_arg, &mut chars),
@@ -266,6 +265,10 @@ fn handle_backslash(chars: &mut std::iter::Peekable<std::str::Chars>, current_ar
             '\\' => {
                 current_arg.push('\\');
                 chars.next(); // Consume the backslash
+            }
+            'n' => {
+                current_arg.push('\n'); // Handle newline escape sequence
+                chars.next(); // Consume the 'n'
             }
             _ => {
                 current_arg.push('\\');
