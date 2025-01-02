@@ -25,7 +25,7 @@ fn main() {
         // e.g echo Hello World !!! ==> echo is the command
         let command = &parts[0];
         // e.g args ==> ["Hello", "World", "!!!"]
-        let args = parts[0..].to_vec();
+        let args = parts[1..].to_vec();
 
         // Handle the command
         match command.as_str() {
@@ -86,17 +86,25 @@ fn main() {
 fn handle_echo(args: Vec<String>) {
     println!("{}", args[1..].join(" "));
 }
+
 fn handle_type(args: Vec<String>) {
     if let Some(command_to_check) = args.get(0) {
-        match command_to_check.as_str() {
-            "exit" | "echo" | "type" | "pwd" | "cd" => {
-                println!("{} is a shell builtin", command_to_check);
-            }
-            _ => {
-                if let Some(path) = find_command_in_path(command_to_check) {
-                    println!("{} is {}", command_to_check, path.display());
-                } else {
-                    println!("{}: not found", command_to_check);
+        if command_to_check == "type" {
+            // Special case: "type" is a shell builtin
+            println!("type is a shell builtin");
+        } else {
+            // Check for other shell builtins
+            match command_to_check.as_str() {
+                "exit" | "echo" | "pwd" | "cd" => {
+                    println!("{} is a shell builtin", command_to_check);
+                }
+                _ => {
+                    // If not a shell builtin, check in PATH for the command
+                    if let Some(path) = find_command_in_path(command_to_check) {
+                        println!("{} is {}", command_to_check, path.display());
+                    } else {
+                        println!("{}: not found", command_to_check);
+                    }
                 }
             }
         }
