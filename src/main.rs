@@ -203,7 +203,7 @@ fn parse_command(input: &str) -> Vec<String> {
             '\'' if !in_double_quote => {
                 // Handle single quotes
                 if in_single_quote {
-                    // Add single quote if we are closing a single quote block
+                    // Closing single quote
                     current_arg.push('\'');
                 }
                 in_single_quote = !in_single_quote;
@@ -211,40 +211,36 @@ fn parse_command(input: &str) -> Vec<String> {
             '"' if !in_single_quote => {
                 // Handle double quotes
                 if in_double_quote {
-                    // Add double quote if we are closing a double quote block
+                    // Closing double quote
                     current_arg.push('\"');
                 }
                 in_double_quote = !in_double_quote;
             }
             '\\' if !in_single_quote && !in_double_quote => {
-                // Handle the backslash escaping logic
+                // Handle backslashes escaping characters
                 if let Some(&next_char) = chars.peek() {
                     if next_char == ' ' {
-                        // If the next character is a space, replace the backslash with a space
-                        current_arg.push(' '); // Use space instead of the backslash
-                        chars.next(); // Consume the space after backslash
+                        // If followed by space, treat it as space instead of backslash
+                        current_arg.push(' ');
+                        chars.next(); // Consume space
                         continue;
                     }
                 }
-                // Otherwise, treat backslash normally as an escape character
-                in_escape = true;
-            }
-            '\\' => {
-                // Handle escape sequence start inside quotes
+                // Treat backslash as escape character for other cases
                 in_escape = true;
             }
             ' ' if !in_single_quote && !in_double_quote && !in_escape => {
-                // Split on space if not inside quotes and not escaping
+                // Split on space if not inside quotes
                 if !current_arg.is_empty() {
                     args.push(current_arg.clone());
                     current_arg.clear();
                 }
             }
             _ => {
-                // Handle any other character: add it to the current argument
+                // Add other characters to current argument
                 if in_escape {
-                    current_arg.push(c); // Add the escaped character literally
-                    in_escape = false; // End escape sequence after processing
+                    current_arg.push(c); // Literal addition of escaped character
+                    in_escape = false; // Reset escape
                 } else {
                     current_arg.push(c);
                 }
@@ -252,7 +248,7 @@ fn parse_command(input: &str) -> Vec<String> {
         }
     }
 
-    // Add the last argument if exists
+    // Add the last argument if any
     if !current_arg.is_empty() {
         args.push(current_arg);
     }
