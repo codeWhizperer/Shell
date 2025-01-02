@@ -86,7 +86,6 @@ fn main() {
 fn handle_echo(args: Vec<String>) {
     println!("{}", args[1..].join(" "));
 }
-
 fn handle_type(args: Vec<String>) {
     if let Some(command_to_check) = args.get(0) {
         match command_to_check.as_str() {
@@ -122,7 +121,6 @@ fn find_command_in_path(command: &str) -> Option<std::path::PathBuf> {
     }
     None
 }
-
 /// Execute an external program with arguments.
 fn execute_external_command(command: &str, args: Vec<String>) {
     let command_path = find_command_in_path(command).expect("Command not found");
