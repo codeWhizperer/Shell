@@ -252,6 +252,5 @@ fn parse_command(input: &str) -> Vec<String> {
     if !current_arg.is_empty() {
         args.push(current_arg);
     }
-
     args
 }
