@@ -283,7 +283,6 @@ fn handle_double_quote(c: char, in_double_quote: &mut bool, current_arg: &mut St
     }
     *in_double_quote = !*in_double_quote;
 }
-
 fn handle_single_quote(c: char, in_single_quote: &mut bool, current_arg: &mut String, chars: &mut std::iter::Peekable<std::str::Chars>) {
     if *in_single_quote {
         current_arg.push(c);
