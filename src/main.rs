@@ -155,6 +155,7 @@ fn parse_command(input: &str) -> Vec<String> {
                     current_arg.clear();
                 }
             }
+            
             '\"' => in_double_quote = !in_double_quote,
             // ' ' if !in_double_quote => {
             //     if !current_arg.is_empty() {
