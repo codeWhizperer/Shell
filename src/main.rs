@@ -230,71 +230,13 @@ fn parse_command(input: &str) -> Vec<String> {
     let mut chars = input.chars().peekable();
 
     while let Some(c) = chars.next() {
+        // Handle different characters with respective functions
         match c {
-            '\\' => {
-                // Handle escape sequences
-                if let Some(&next_char) = chars.peek() {
-                    match next_char {
-                        ' ' => {
-                            // Skip the backslash and treat it as a space
-                            current_arg.push(' ');
-                            chars.next(); // Consume the space
-                        }
-                        '"' => {
-                            // Treat escaped quote inside double quotes
-                            current_arg.push('"');
-                            chars.next(); // Consume the quote
-                        }
-                        '\'' => {
-                            // Treat escaped single quote inside single quotes
-                            current_arg.push('\'');
-                            chars.next(); // Consume the single quote
-                        }
-                        '\\' => {
-                            // Treat escaped backslash
-                            current_arg.push('\\');
-                            chars.next(); // Consume the backslash
-                        }
-                        _ => {
-                            // Otherwise, treat backslash as literal
-                            current_arg.push('\\');
-                        }
-                    }
-                }
-            }
-            '"' if !in_single_quote => {
-                // Toggle state for double quotes
-                in_double_quote = !in_double_quote;
-                if in_double_quote {
-                    // Start of double quotes, do not add the quote itself
-                    continue;
-                } else {
-                    // End of double quotes, add quote to the argument
-                    current_arg.push('"');
-                }
-            }
-            '\'' if !in_double_quote => {
-                // Toggle state for single quotes
-                in_single_quote = !in_single_quote;
-                if in_single_quote {
-                    // Start of single quotes, do not add the quote itself
-                    continue;
-                } else {
-                    // End of single quotes, add quote to the argument
-                    current_arg.push('\'');
-                }
-            }
-            ' ' if !in_single_quote && !in_double_quote => {
-                // Handle space outside quotes (argument boundary)
-                if !current_arg.is_empty() {
-                    args.push(current_arg.clone());
-                    current_arg.clear();
-                }
-            }
-            _ => {
-                // Add any other characters to the current argument
-                current_arg.push(c);
-            }
+            '\\' => handle_backslash(&mut chars, &mut current_arg),
+            '"' => handle_double_quote(c, &mut in_double_quote, &mut current_arg, &mut chars),
+            '\'' => handle_single_quote(c, &mut in_single_quote, &mut current_arg, &mut chars),
+            ' ' => handle_space(&mut in_single_quote, &mut in_double_quote, &mut current_arg, &mut args),
+            _ => current_arg.push(c),
         }
     }
 
@@ -304,4 +246,51 @@ fn parse_command(input: &str) -> Vec<String> {
     }
 
     args
+}
+
+fn handle_backslash(chars: &mut std::iter::Peekable<std::str::Chars>, current_arg: &mut String) {
+    if let Some(&next_char) = chars.peek() {
+        match next_char {
+            ' ' => {
+                current_arg.push(' ');
+                chars.next(); // Consume the space
+            }
+            '"' => {
+                current_arg.push('"');
+                chars.next(); // Consume the double quote
+            }
+            '\'' => {
+                current_arg.push('\'');
+                chars.next(); // Consume the single quote
+            }
+            '\\' => {
+                current_arg.push('\\');
+                chars.next(); // Consume the backslash
+            }
+            _ => {
+                current_arg.push('\\');
+            }
+        }
+    }
+}
+
+fn handle_double_quote(c: char, in_double_quote: &mut bool, current_arg: &mut String, chars: &mut std::iter::Peekable<std::str::Chars>) {
+    if *in_double_quote {
+        current_arg.push(c);
+    }
+    *in_double_quote = !*in_double_quote;
+}
+
+fn handle_single_quote(c: char, in_single_quote: &mut bool, current_arg: &mut String, chars: &mut std::iter::Peekable<std::str::Chars>) {
+    if *in_single_quote {
+        current_arg.push(c);
+    }
+    *in_single_quote = !*in_single_quote;
+}
+
+fn handle_space(in_single_quote: &mut bool, in_double_quote: &mut bool, current_arg: &mut String, args: &mut Vec<String>) {
+    if !*in_single_quote && !*in_double_quote && !current_arg.is_empty() {
+        args.push(current_arg.clone());
+        current_arg.clear();
+    }
 }
