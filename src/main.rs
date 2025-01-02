@@ -201,37 +201,48 @@ fn parse_command(input: &str) -> Vec<String> {
     while let Some(c) = chars.next() {
         match c {
             '\'' if !in_double_quote => {
-                // Toggle single quote if we're not in double quotes
+                // Handle single quotes
                 if in_single_quote {
-                    current_arg.push('\''); // Add the single quote as part of the argument
+                    // Add single quote if we are closing a single quote block
+                    current_arg.push('\'');
                 }
                 in_single_quote = !in_single_quote;
             }
             '"' if !in_single_quote => {
-                // Toggle double quote if we're not in single quotes
+                // Handle double quotes
                 if in_double_quote {
-                    current_arg.push('\"'); // Add the double quote as part of the argument
+                    // Add double quote if we are closing a double quote block
+                    current_arg.push('\"');
                 }
                 in_double_quote = !in_double_quote;
             }
-            '\\' if in_escape => {
-                // Handle an escape sequence inside quotes
-                current_arg.push(c); // Add the backslash
-                in_escape = false; // End the escape sequence
+            '\\' if !in_single_quote && !in_double_quote => {
+                // Handle the backslash escaping logic
+                if let Some(&next_char) = chars.peek() {
+                    if next_char == ' ' {
+                        // If the next character is a space, we keep the backslash and space
+                        current_arg.push(c);
+                        current_arg.push(next_char);
+                        chars.next(); // Consume the space after backslash
+                        continue;
+                    }
+                }
+                // Otherwise, treat backslash normally as an escape character
+                in_escape = true;
             }
             '\\' => {
-                // If we encounter a backslash outside quotes or inside an escape, start escape mode
+                // Handle escape sequence start inside quotes
                 in_escape = true;
             }
             ' ' if !in_single_quote && !in_double_quote && !in_escape => {
-                // Only split on spaces outside quotes and escape mode
+                // Split on space if not inside quotes and not escaping
                 if !current_arg.is_empty() {
                     args.push(current_arg.clone());
                     current_arg.clear();
                 }
             }
             _ => {
-                // Handle any other character: just add it to the current argument
+                // Handle any other character: add it to the current argument
                 if in_escape {
                     current_arg.push(c); // Add the escaped character literally
                     in_escape = false; // End escape sequence after processing
