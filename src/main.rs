@@ -153,36 +153,67 @@ fn execute_external_command(command: &str, args: Vec<String>) {
 }
 
 
+
+
 // fn parse_command(input: &str) -> Vec<String> {
 //     let mut args = Vec::new();
 //     let mut current_arg = String::new();
 //     let mut in_single_quote = false;
 //     let mut in_double_quote = false;
-//     let mut in_escape = false;
-
+//     let mut in_escape = false; // Flag for handling escape sequences
 //     let mut chars = input.chars().peekable();
 
 //     while let Some(c) = chars.next() {
 //         match c {
-//             '\'' if !in_double_quote => in_single_quote = !in_single_quote,
-//             '"' if !in_single_quote => in_double_quote = !in_double_quote,
-//             '\\' if in_single_quote || in_double_quote => {
-//                 // Handle escaped characters inside quotes
-//                 in_escape = !in_escape;
-//                 current_arg.push(c);
+//             '\'' if !in_double_quote => {
+//                 // Handle single quotes
+//                 if in_single_quote {
+//                     // Closing single quote
+//                     current_arg.push('\'');
+//                 }
+//                 in_single_quote = !in_single_quote;
 //             }
-//             ' ' if !in_single_quote && !in_double_quote => {
+//             '"' if !in_single_quote => {
+//                 // Handle double quotes
+//                 if in_double_quote {
+//                     // Closing double quote
+//                     current_arg.push('\"');
+//                 }
+//                 in_double_quote = !in_double_quote;
+//             }
+//             '\\' if !in_single_quote && !in_double_quote => {
+//                 // Handle backslashes escaping characters
+//                 if let Some(&next_char) = chars.peek() {
+//                     if next_char == ' ' {
+//                         // If followed by space, treat it as space instead of backslash
+//                         current_arg.push(' ');
+//                         chars.next(); // Consume space
+//                         continue;
+//                     }
+//                 }
+//                 // Treat backslash as escape character for other cases
+//                 in_escape = true;
+//             }
+//             ' ' if !in_single_quote && !in_double_quote && !in_escape => {
+//                 // Split on space if not inside quotes
 //                 if !current_arg.is_empty() {
 //                     args.push(current_arg.clone());
 //                     current_arg.clear();
 //                 }
 //             }
 //             _ => {
-//                 current_arg.push(c);
+//                 // Add other characters to current argument
+//                 if in_escape {
+//                     current_arg.push(c); // Literal addition of escaped character
+//                     in_escape = false; // Reset escape
+//                 } else {
+//                     current_arg.push(c);
+//                 }
 //             }
 //         }
 //     }
 
+//     // Add the last argument if any
 //     if !current_arg.is_empty() {
 //         args.push(current_arg);
 //     }
@@ -190,45 +221,63 @@ fn execute_external_command(command: &str, args: Vec<String>) {
 //     args
 // }
 
+
 fn parse_command(input: &str) -> Vec<String> {
     let mut args = Vec::new();
     let mut current_arg = String::new();
     let mut in_single_quote = false;
     let mut in_double_quote = false;
-    let in_escape = false; // Flag for handling escape sequences
     let mut chars = input.chars().peekable();
 
     while let Some(c) = chars.next() {
         match c {
-            '\\' if !in_single_quote && !in_double_quote => {
-                // Escape character found, handle accordingly
+            '\\' => {
+                // Handle escape sequences literally (e.g., treat \n as "n")
                 if let Some(&next_char) = chars.peek() {
-                    // Handle escape sequences for special characters like spaces or quotes
-                    if next_char == ' ' || next_char == '"' || next_char == '\'' {
-                        current_arg.push(next_char); // Preserve the escaped character
-                        chars.next(); // Consume the next character
-                    } else {
-                        current_arg.push(c); // Add the backslash as a literal
+                    // Just push the escape character and the next char as is
+                    match next_char {
+                        'n' => {
+                            current_arg.push('n'); // Treat \n as a literal 'n'
+                            chars.next(); // Consume the 'n'
+                        }
+                        't' => {
+                            current_arg.push('t'); // Treat \t as a literal 't'
+                            chars.next(); // Consume the 't'
+                        }
+                        '"' => {
+                            current_arg.push('"'); // Treat \" as a literal "
+                            chars.next(); // Consume the "
+                        }
+                        '\'' => {
+                            current_arg.push('\''); // Treat \' as a literal '
+                            chars.next(); // Consume the '
+                        }
+                        '\\' => {
+                            current_arg.push('\\'); // Literal backslash
+                            chars.next(); // Consume the backslash
+                        }
+                        _ => {
+                            // Treat backslash as a literal if not followed by known escape character
+                            current_arg.push('\\');
+                        }
                     }
                 }
             }
             '"' if !in_single_quote => {
                 // Toggle state for double quotes
                 if in_double_quote {
-                    // Closing double quote
-                    current_arg.push('\"');
+                    current_arg.push('"');
                 }
                 in_double_quote = !in_double_quote;
             }
             '\'' if !in_double_quote => {
                 // Toggle state for single quotes
                 if in_single_quote {
-                    // Closing single quote
                     current_arg.push('\'');
                 }
                 in_single_quote = !in_single_quote;
             }
-            ' ' if !in_single_quote && !in_double_quote && !in_escape => {
+            ' ' if !in_single_quote && !in_double_quote => {
                 // Space outside quotes marks argument boundary
                 if !current_arg.is_empty() {
                     args.push(current_arg.clone());
@@ -249,3 +298,4 @@ fn parse_command(input: &str) -> Vec<String> {
 
     args
 }
+
