@@ -227,22 +227,36 @@ fn parse_command(input: &str) -> Vec<String> {
     let mut current_arg = String::new();
     let mut in_single_quote = false;
     let mut in_double_quote = false;
-    let mut skip_space = false; // Flag to handle escaped spaces
     let mut chars = input.chars().peekable();
 
     while let Some(c) = chars.next() {
         match c {
             '\\' => {
-                // Handle escape sequences for backslashes and spaces
+                // Handle escape sequences
                 if let Some(&next_char) = chars.peek() {
                     match next_char {
                         ' ' => {
-                            // Skip the backslash and treat it as a single space
+                            // Skip the backslash and treat it as a space
                             current_arg.push(' ');
                             chars.next(); // Consume the space
                         }
+                        '"' => {
+                            // Treat escaped quote inside double quotes
+                            current_arg.push('"');
+                            chars.next(); // Consume the quote
+                        }
+                        '\'' => {
+                            // Treat escaped single quote inside single quotes
+                            current_arg.push('\'');
+                            chars.next(); // Consume the single quote
+                        }
+                        '\\' => {
+                            // Treat escaped backslash
+                            current_arg.push('\\');
+                            chars.next(); // Consume the backslash
+                        }
                         _ => {
-                            // Treat backslash as a literal character
+                            // Otherwise, treat backslash as literal
                             current_arg.push('\\');
                         }
                     }
@@ -250,17 +264,25 @@ fn parse_command(input: &str) -> Vec<String> {
             }
             '"' if !in_single_quote => {
                 // Toggle state for double quotes
+                in_double_quote = !in_double_quote;
                 if in_double_quote {
+                    // Start of double quotes, do not add the quote itself
+                    continue;
+                } else {
+                    // End of double quotes, add quote to the argument
                     current_arg.push('"');
                 }
-                in_double_quote = !in_double_quote;
             }
             '\'' if !in_double_quote => {
                 // Toggle state for single quotes
+                in_single_quote = !in_single_quote;
                 if in_single_quote {
+                    // Start of single quotes, do not add the quote itself
+                    continue;
+                } else {
+                    // End of single quotes, add quote to the argument
                     current_arg.push('\'');
                 }
-                in_single_quote = !in_single_quote;
             }
             ' ' if !in_single_quote && !in_double_quote => {
                 // Handle space outside quotes (argument boundary)
@@ -283,4 +305,3 @@ fn parse_command(input: &str) -> Vec<String> {
 
     args
 }
-
