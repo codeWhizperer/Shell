@@ -152,11 +152,41 @@ fn execute_external_command(command: &str, args: Vec<String>) {
     }
 }
 
+// fn parse_command(input: &str) -> Vec<String> {
+//     let mut args = Vec::new();
+//     let mut current_arg = String::new();
+//     let mut in_single_quote = false;
+//     let mut in_double_quote = false;
+
+//     let mut chars = input.chars().peekable();
+
+//     while let Some(c) = chars.next() {
+//         match c {
+//             '\'' if !in_double_quote => in_single_quote = !in_single_quote,
+//             '"' if !in_single_quote => in_double_quote = !in_double_quote,
+//             ' ' if !in_single_quote && !in_double_quote => {
+//                 if !current_arg.is_empty() {
+//                     args.push(current_arg.clone());
+//                     current_arg.clear();
+//                 }
+//             }
+//             _ => current_arg.push(c),
+//         }
+//     }
+
+//     if !current_arg.is_empty() {
+//         args.push(current_arg);
+//     }
+
+//     args
+// }
+
 fn parse_command(input: &str) -> Vec<String> {
     let mut args = Vec::new();
     let mut current_arg = String::new();
     let mut in_single_quote = false;
     let mut in_double_quote = false;
+    let mut in_escape = false; // Flag for handling escape sequences like spaces within quotes
 
     let mut chars = input.chars().peekable();
 
@@ -164,13 +194,20 @@ fn parse_command(input: &str) -> Vec<String> {
         match c {
             '\'' if !in_double_quote => in_single_quote = !in_single_quote,
             '"' if !in_single_quote => in_double_quote = !in_double_quote,
+            '\\' if in_single_quote || in_double_quote => {
+                // Handle escaped characters within quotes, if any (like spaces inside quotes)
+                in_escape = !in_escape;
+                current_arg.push(c);
+            }
             ' ' if !in_single_quote && !in_double_quote => {
                 if !current_arg.is_empty() {
                     args.push(current_arg.clone());
                     current_arg.clear();
                 }
             }
-            _ => current_arg.push(c),
+            _ => {
+                current_arg.push(c);
+            }
         }
     }
 
