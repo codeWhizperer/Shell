@@ -227,37 +227,22 @@ fn parse_command(input: &str) -> Vec<String> {
     let mut current_arg = String::new();
     let mut in_single_quote = false;
     let mut in_double_quote = false;
+    let mut skip_space = false; // Flag to handle escaped spaces
     let mut chars = input.chars().peekable();
 
     while let Some(c) = chars.next() {
         match c {
             '\\' => {
-                // Handle escape sequences literally (e.g., treat \n as "n")
+                // Handle escape sequences for backslashes and spaces
                 if let Some(&next_char) = chars.peek() {
-                    // Just push the escape character and the next char as is
                     match next_char {
-                        'n' => {
-                            current_arg.push('n'); // Treat \n as a literal 'n'
-                            chars.next(); // Consume the 'n'
-                        }
-                        't' => {
-                            current_arg.push('t'); // Treat \t as a literal 't'
-                            chars.next(); // Consume the 't'
-                        }
-                        '"' => {
-                            current_arg.push('"'); // Treat \" as a literal "
-                            chars.next(); // Consume the "
-                        }
-                        '\'' => {
-                            current_arg.push('\''); // Treat \' as a literal '
-                            chars.next(); // Consume the '
-                        }
-                        '\\' => {
-                            current_arg.push('\\'); // Literal backslash
-                            chars.next(); // Consume the backslash
+                        ' ' => {
+                            // Skip the backslash and treat it as a single space
+                            current_arg.push(' ');
+                            chars.next(); // Consume the space
                         }
                         _ => {
-                            // Treat backslash as a literal if not followed by known escape character
+                            // Treat backslash as a literal character
                             current_arg.push('\\');
                         }
                     }
@@ -278,7 +263,7 @@ fn parse_command(input: &str) -> Vec<String> {
                 in_single_quote = !in_single_quote;
             }
             ' ' if !in_single_quote && !in_double_quote => {
-                // Space outside quotes marks argument boundary
+                // Handle space outside quotes (argument boundary)
                 if !current_arg.is_empty() {
                     args.push(current_arg.clone());
                     current_arg.clear();
