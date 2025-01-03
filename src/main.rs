@@ -153,75 +153,6 @@ fn execute_external_command(command: &str, args: Vec<String>) {
 }
 
 
-
-
-// fn parse_command(input: &str) -> Vec<String> {
-//     let mut args = Vec::new();
-//     let mut current_arg = String::new();
-//     let mut in_single_quote = false;
-//     let mut in_double_quote = false;
-//     let mut in_escape = false; // Flag for handling escape sequences
-//     let mut chars = input.chars().peekable();
-
-//     while let Some(c) = chars.next() {
-//         match c {
-//             '\'' if !in_double_quote => {
-//                 // Handle single quotes
-//                 if in_single_quote {
-//                     // Closing single quote
-//                     current_arg.push('\'');
-//                 }
-//                 in_single_quote = !in_single_quote;
-//             }
-//             '"' if !in_single_quote => {
-//                 // Handle double quotes
-//                 if in_double_quote {
-//                     // Closing double quote
-//                     current_arg.push('\"');
-//                 }
-//                 in_double_quote = !in_double_quote;
-//             }
-//             '\\' if !in_single_quote && !in_double_quote => {
-//                 // Handle backslashes escaping characters
-//                 if let Some(&next_char) = chars.peek() {
-//                     if next_char == ' ' {
-//                         // If followed by space, treat it as space instead of backslash
-//                         current_arg.push(' ');
-//                         chars.next(); // Consume space
-//                         continue;
-//                     }
-//                 }
-//                 // Treat backslash as escape character for other cases
-//                 in_escape = true;
-//             }
-//             ' ' if !in_single_quote && !in_double_quote && !in_escape => {
-//                 // Split on space if not inside quotes
-//                 if !current_arg.is_empty() {
-//                     args.push(current_arg.clone());
-//                     current_arg.clear();
-//                 }
-//             }
-//             _ => {
-//                 // Add other characters to current argument
-//                 if in_escape {
-//                     current_arg.push(c); // Literal addition of escaped character
-//                     in_escape = false; // Reset escape
-//                 } else {
-//                     current_arg.push(c);
-//                 }
-//             }
-//         }
-//     }
-
-//     // Add the last argument if any
-//     if !current_arg.is_empty() {
-//         args.push(current_arg);
-//     }
-
-//     args
-// }
-
-
 fn parse_command(input: &str) -> Vec<String> {
     let mut args = Vec::new();
     let mut current_arg = String::new();
@@ -239,7 +170,6 @@ fn parse_command(input: &str) -> Vec<String> {
         }
     }
 
-    // Add the last argument if any
     if !current_arg.is_empty() {
         args.push(current_arg);
     }
@@ -283,26 +213,23 @@ fn handle_backslash(chars: &mut std::iter::Peekable<std::str::Chars>, current_ar
 
 fn handle_double_quote(c: char, in_double_quote: &mut bool, current_arg: &mut String) {
     if *in_double_quote {
-        // If already inside double quotes, ignore the closing quote
         return;
     }
-    *in_double_quote = !*in_double_quote; // Toggle the state for double quotes
+    *in_double_quote = !*in_double_quote;
 }
 
 fn handle_single_quote(c: char, in_single_quote: &mut bool, current_arg: &mut String) {
     if *in_single_quote {
-        // If already inside single quotes, ignore the closing quote
         return;
     }
-    *in_single_quote = !*in_single_quote; // Toggle the state for single quotes
+    *in_single_quote = !*in_single_quote; 
 }
 
 fn handle_space(in_single_quote: &mut bool, in_double_quote: &mut bool, current_arg: &mut String, args: &mut Vec<String>) {
     if !*in_single_quote && !*in_double_quote && !current_arg.is_empty() {
-        args.push(current_arg.clone()); // Push the current argument if no quotes are active
-        current_arg.clear(); // Clear the current argument for the next one
+        args.push(current_arg.clone()); 
+        current_arg.clear(); 
     } else if *in_single_quote || *in_double_quote {
-        // Don't split on space if inside quotes
-        current_arg.push(' '); // Add space inside quotes to the argument
+        current_arg.push(' '); 
     }
 }
